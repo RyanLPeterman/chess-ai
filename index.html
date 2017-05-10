@@ -1,121 +1,13 @@
 <html><head>
     	<link href="https://fonts.googleapis.com/css?family=Pangolin" rel="stylesheet">
-    	<link rel="stylesheet" type="text/css" href="style.css">
-
     	<link rel="stylesheet" href="css/chessboard-0.3.0.css">
     	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
     </head>
     <body>
 	    <script src="js/chessboard-0.3.0.js"></script>
 	    <script src="js/chess.js"></script>
-	    <script>
-	    	var init = function() {
 
-			var board,
-			  game = new Chess();
-
-			// do not pick up pieces if the game is over
-			// only pick up pieces for White
-			var onDragStart = function(source, piece, position, orientation) {
-			  if (game.in_checkmate() === true || game.in_draw() === true ||
-			    piece.search(/^b/) !== -1) {
-			    return false;
-			  }
-
-			};
-			var getScore= function(player) { //white true black false
-				console.log(game.board());
-
-				var currentBoard=game.board();
-				var whiteScore=0;
-				var blackScore=0;
-
-				for(var i=0; i<currentBoard.length; i++){
-					var row = currentBoard[i];
-
-					for(var j=0; j<row.length; j++){
-						var square = row[j];
-
-						console.log(square);
-					}
-				}
-				return 0;
-			// whiteScore-blackScore
-			};
-
-			var onDrop = function(source, target) {
-			  // see if the move is legal
-			  var move = game.move({
-			    from: source,
-			    to: target,
-			    promotion: 'q' // NOTE: always promote to a queen for example simplicity
-			  });
-
-			  // illegal move
-			  if (move === null) return 'snapback';
-
-			  // make random legal move for black
-			  window.setTimeout(makeAggresiveMove, 250);
-			};
-
-			// update the board position after the piece snap
-			// for castling, en passant, pawn promotion
-			var onSnapEnd = function() {
-			  board.position(game.fen());
-			};
-			// var makeRandomMove = function() {
-			//   var possibleMoves = game.moves();
-
-			//   // game over
-			//   if (possibleMoves.length === 0) {
-			//   	alert("The Game is Over");
-			//   	// TODO: reset the board here
-			//   	return;
-			//   }
-			//   var randomIndex = Math.floor(Math.random() * possibleMoves.length);
-			//   game.move(possibleMoves[randomIndex]);
-			//   board.position(game.fen());
-			// };
-			var makeAggresiveMove = function() {
-			  var possibleMoves = game.moves({ verbose: true });
-			  	console.log("getScore returned ",getScore(true));
-
-			  // game over
-			  if (possibleMoves.length === 0) {
-			  	alert("The Game is Over");
-			  	// TODO: reset the board here
-			  	return;
-			  }
-
-			  for (var i = 0; i<possibleMoves.length; i++) {
-
-
-			  	// thisMove contains for example { color: 'w', from: 'a2', to: 'a3', flags: 'n', piece: 'p', san 'a3' }
-				var thisMove=possibleMoves[i];
-				//console.log(thisMove);
-
-				// thisMove is a capturing move
-				if(thisMove.flags.indexOf("c")> -1)
-				{
-					game.move(thisMove.san);
-				}
-			  }
-
-			  // pick a random index
-			  	var randomIndex = Math.floor(Math.random() * possibleMoves.length);
-			  game.move(possibleMoves[randomIndex]);
-			  board.position(game.fen());
-			};
-			var cfg = {
-			  draggable: true,
-			  position: 'start',
-			  onDragStart: onDragStart,
-			  onDrop: onDrop,
-			  onSnapEnd: onSnapEnd
-			};
-			board = ChessBoard('board', cfg);
-			}
-			$(document).ready(init);
-	    </script>
+	    <div id="board" style="width: 400px"></div>
+	    <script src = "js/main.js"></script>
 	</body>
 </html>
