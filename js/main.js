@@ -29,7 +29,7 @@ var init = function() {
 	};
 
 	// if player == true, then its from whites perspective
-	var getScore = function(board, isWhite) { //white true black false
+	var getScore = function(board) { //white true black false
 		var score = 0;
 
 		for(var i = 0; i < board.length; i++){
@@ -65,13 +65,8 @@ var init = function() {
 							break;
 					}
 
-					// we are evaluating from white's perspective
-					if (isWhite && square.color === 'b') {
-						pieceVal *= -1;
-					}
-
 					// we are evaluating from black's perspective
-					if(!isWhite && square.color === 'w') {
+					if(square.color === 'w') {
 						pieceVal *= -1;
 					}
 
@@ -127,28 +122,69 @@ var init = function() {
 		board.position(game.fen());
 	};
 
-	var makeMove = function() {
-		var moves = game.moves();
-
-		// start as small value to relax into later
-		var bestScore = -999999;
-		var bestMove;
-
-		for(var i = 0; i < moves.length; i++) {
-			// make a move
-			game.move(moves[i]);
-
-			var moveScore = getScore(game.board(), false);
-
-			// we found a better move
-			if (moveScore > bestScore) {
-				bestScore = moveScore;
-				bestMove = moves[i];
-			}
-
-			// undo last move
-			game.undo();
+	// finds the best move for current player, returns obj for the
+	// sake of outer function
+	var minimax = function(depth, game, isMaximizingPlayer) {
+		// if done recursing
+		if (depth === 0) {
+			// return the score of the other player
+			return {score: getScore(game.board()), move: null};
 		}
+
+		var moves = game.moves();
+		var bestMove;
+		var bestVal;
+
+		if (isMaximizingPlayer) {
+			bestVal = -99999;
+
+			// for all possible moves
+			for(var i = 0; i < moves.length; i++) {
+				// make a move
+				game.move(moves[i]);
+
+				// get the value of a move based on trying a few moves via minimax
+				var currVal = minimax(depth - 1, game, !isMaximizingPlayer).score;
+
+				// if minimax move is better than value we've seen so far save it
+				if(bestVal < currVal) {
+					bestMove = moves[i];
+					bestVal = currVal;
+				}
+
+				// undo move
+				game.undo();
+			}
+		}
+		// minimizing player
+		else {
+			bestVal = 99999;
+
+			// for all possible moves
+			for(var i = 0; i < moves.length; i++) {
+				// make a move
+				game.move(moves[i]);
+
+				// get the value of a move based on trying a few moves via minimax
+				var currVal = minimax(depth - 1, game, !isMaximizingPlayer).score;
+
+				// if minimax move is better than value we've seen so far save it
+				if(bestVal > currVal) {
+					bestMove = moves[i];
+					bestVal = currVal;
+				}
+
+				// undo move
+				game.undo();
+			}
+		}
+
+		return {score: bestVal, move: bestMove};
+	}
+
+	var makeMove = function() {
+		// find bestMove as maximizing player
+		var bestMove = minimax(3, game, true).move;
 
 		game.move(bestMove);
 		board.position(game.fen());
