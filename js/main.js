@@ -27,24 +27,59 @@ var init = function() {
 	  }
 
 	};
-	var getScore= function(player) { //white true black false
-		console.log(game.board());
 
-		var currentBoard=game.board();
-		var whiteScore=0;
-		var blackScore=0;
+	// if player == true, then its from whites perspective
+	var getScore = function(board, isWhite) { //white true black false
+		var score = 0;
 
-		for(var i=0; i<currentBoard.length; i++){
-			var row = currentBoard[i];
+		for(var i = 0; i < board.length; i++){
+			var row = board[i];
 
 			for(var j=0; j<row.length; j++){
 				var square = row[j];
 
-				console.log(square);
+				var pieceVal = 0;
+				// if we have a piece
+				if (square !== null) {
+					switch(square.type) {
+						case 'p': // pawn
+							pieceVal = 10;
+							break;
+						case 'r': // rook
+							pieceVal = 50;
+							break;
+						case 'n': // knight
+							pieceVal = 30;
+							break;
+						case 'b': // bishop
+							pieceVal = 30;
+							break;
+						case 'q': // queen
+							pieceVal = 90;
+							break;
+						case 'k': // king
+							pieceVal = 900;
+							break;
+						default:
+							console.log("Piece not recognized");
+							break;
+					}
+
+					// we are evaluating from white's perspective
+					if (isWhite && square.color === 'b') {
+						pieceVal *= -1;
+					}
+
+					// we are evaluating from black's perspective
+					if(!isWhite && square.color === 'w') {
+						pieceVal *= -1;
+					}
+
+					score += pieceVal;
+				}
 			}
 		}
-		return 0;
-	// whiteScore-blackScore
+		return score;
 	};
 
 	var onDrop = function(source, target) {
@@ -89,38 +124,34 @@ var init = function() {
 	// update the board position after the piece snap
 	// for castling, en passant, pawn promotion
 	var onSnapEnd = function() {
-	  board.position(game.fen());
+		board.position(game.fen());
 	};
 
 	var makeMove = function() {
-	  var possibleMoves = game.moves({ verbose: true });
-		console.log("getScore returned ",getScore(true));
+		var moves = game.moves();
 
-	  // game over
-	  if (possibleMoves.length === 0) {
-		alert("The Game is Over");
-		// TODO: reset the board here
-		return;
-	  }
+		// start as small value to relax into later
+		var bestScore = -999999;
+		var bestMove;
 
-	  for (var i = 0; i<possibleMoves.length; i++) {
+		for(var i = 0; i < moves.length; i++) {
+			// make a move
+			game.move(moves[i]);
 
+			var moveScore = getScore(game.board(), false);
 
-		// thisMove contains for example { color: 'w', from: 'a2', to: 'a3', flags: 'n', piece: 'p', san 'a3' }
-		var thisMove=possibleMoves[i];
-		//console.log(thisMove);
+			// we found a better move
+			if (moveScore > bestScore) {
+				bestScore = moveScore;
+				bestMove = moves[i];
+			}
 
-		// thisMove is a capturing move
-		if(thisMove.flags.indexOf("c")> -1)
-		{
-			game.move(thisMove.san);
+			// undo last move
+			game.undo();
 		}
-	  }
 
-	  // pick a random index
-		var randomIndex = Math.floor(Math.random() * possibleMoves.length);
-	  game.move(possibleMoves[randomIndex]);
-	  board.position(game.fen());
+		game.move(bestMove);
+		board.position(game.fen());
 	};
 
 	var cfg = {
