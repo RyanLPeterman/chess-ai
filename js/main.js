@@ -131,7 +131,7 @@ var init = function() {
 			return {score: getScore(game.board()), move: null};
 		}
 
-		var moves = game.moves();
+		var moves = game.ugly_moves();
 		var bestMove;
 		var bestVal;
 
@@ -141,7 +141,7 @@ var init = function() {
 			// for all possible moves
 			for(var i = 0; i < moves.length; i++) {
 				// make a move
-				game.move(moves[i]);
+				game.ugly_move(moves[i]);
 
 				// get the value of a move based on trying a few moves via minimax
 				var currVal = minimax(depth - 1, game, !isMaximizingPlayer).score;
@@ -163,7 +163,7 @@ var init = function() {
 			// for all possible moves
 			for(var i = 0; i < moves.length; i++) {
 				// make a move
-				game.move(moves[i]);
+				game.ugly_move(moves[i]);
 
 				// get the value of a move based on trying a few moves via minimax
 				var currVal = minimax(depth - 1, game, !isMaximizingPlayer).score;
@@ -183,12 +183,28 @@ var init = function() {
 	}
 
 	var makeMove = function() {
-		// find bestMove as maximizing player
-		var bestMove = minimax(3, game, true).move;
+		var possibleMoves = game.moves();
 
-		game.move(bestMove);
+		// find bestMove as maximizing player
+		var bestMove = minimax(1, game, true).move;
+		game.ugly_move(bestMove);
 		board.position(game.fen());
 	};
+
+	var makeRandomMove = function() {
+
+		var possibleMoves = game.moves();
+		// exit if the game is over
+		if (game.game_over() === true ||
+		    game.in_draw() === true ||
+		    possibleMoves.length === 0) return;
+
+		var randomIndex = Math.floor(Math.random() * possibleMoves.length);
+		game.move(possibleMoves[randomIndex]);
+		board.position(game.fen());
+
+		window.setTimeout(makeMove, 500);
+	}
 
 	var cfg = {
 	  draggable: true,
@@ -201,6 +217,8 @@ var init = function() {
 	};
 
 	board = ChessBoard('board', cfg);
+
+	// window.setTimeout(makeRandomMove, 500);
 }
 
 $(document).ready(init);
